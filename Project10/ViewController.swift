@@ -37,6 +37,12 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewPerson))
+        
+        let defaults = UserDefaults.standard
+        
+        if let savedPeople = defaults.object(forKey: "people") as? Data {
+            people = NSKeyedUnarchiver.unarchiveObject(with: savedPeople) as! [Person]
+        }
     }
     
     func addNewPerson() {
@@ -45,6 +51,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         picker.delegate = self
         present(picker, animated: true)
     }
+    
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         guard let image = info[UIImagePickerControllerEditedImage] as? UIImage else { return }
         
@@ -60,6 +67,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         collectionView?.reloadData()
         
         dismiss(animated: true)
+        save()
     }
     
     func getDocumentsDirectory() -> URL {
@@ -67,6 +75,13 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         let documentsDirectory = paths[0]
         return documentsDirectory
     }
+    
+    func save() {
+        let savedData = NSKeyedArchiver.archivedData(withRootObject: people)
+        let defaults = UserDefaults.standard
+        defaults.set(savedData, forKey: "people")
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -86,6 +101,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             person.name = newName.text!
             
             self.collectionView?.reloadData()
+            self.save()
         })
         
         present(ac, animated: true)
